@@ -1,0 +1,17 @@
+# TCP Socket Programming Chat Application Requirements
+# Core Python libraries used in this project
+
+# Note: socket, socketserver, and sys are part of Python's standard library
+# and do not need to be installed via pip. This file is included for
+# project documentation and consistency with Python project standards.
+
+# Python version requirement
+# This project requires Python 2.7 (as provided on Vital's virtual machines)
+# for compatibility with the deployed environment
+
+# No external dependencies required - all libraries used are part of Python's standard library:
+# - socket: Low-level networking interface
+# - socketserver: High-level network server framework  
+# - sys: System-specific parameters and functions
+
+
