@@ -1,0 +1,192 @@
+"""
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py 
+    
+"""
+TYPE = "type"
+ARGS = "args"
+RETURN = "return"
+EXCP = "exceptions"
+TARGET = "target"
+FUNC = "func"  
+OBJC = "objc"
+
+if 'closed_files' not in mycontext:
+            mycontext['closed_files'] = []
+if 'default_handle' not in mycontext:
+            mycontext['default_handle'] = []
+if 'current_open_files' not in mycontext:
+            mycontext['current_open_files'] = []
+
+mycontext['file_lock'] = createlock()
+mycontext['global_context_lock'] = createlock()
+
+class LPFile():
+    def __init__(self, filename, create):
+        # globals
+        mycontext['debug'] = False
+        self.filename = filename
+        self.isclosed = False
+
+        mycontext['file_lock'].acquire(True)
+        try:
+            if create == False and 'default' in listfiles() and filename not in listfiles():
+                #check if default is currently open
+                if not mycontext['default_handle']: #if empty then default is closed
+                    default_file = openfile('default', False)
+                    default_content = default_file.readat(None, 0) # Read from the file using the sandbox's readat
+                    self.LPfile_secret = openfile(filename, True)
+                    self.LPfile_secret.writeat(default_content, 0)
+                    default_file.close()
+                else: #default is open
+                    default_handle_ref = mycontext['default_handle'][0]
+                    default_content = default_handle_ref.readat(None, 0)
+                    self.LPfile_secret = openfile(filename, True)
+                    self.LPfile_secret.writeat(default_content, 0)
+                
+                if self.filename != 'default':
+                    mycontext['current_open_files'].append(self.filename) #add to open files once new file is created
+        
+            elif create == False and 'default' not in listfiles() and filename not in listfiles():
+                #default will not be created if not already existent and create set to False
+
+                raise FileNotFoundError("Creating a new file has not been enabled, and the default file used as a template is not in the current working directory or has had its name modified.")
+                
+            else: 
+                #when create is False and file exists, file will be opened using original Repy API
+                #when create is True  and file exists, file will be opened using original Repy API
+                #when create is True and file does not exist, a new file will be created using original Repy API
+                
+                #catch if default is being newly created
+                if filename == 'default' and 'default' not in listfiles():
+                    self.LPfile_secret = openfile(filename, create)
+                    #check if default was successfully created
+                    if 'default' in listfiles():
+                        delete_closed_files()
+                        default_handle_ref = self.LPfile_secret
+                        mycontext['default_handle'].append(default_handle_ref)
+
+                else:
+                    self.LPfile_secret = openfile(filename, create)
+                    if filename  == 'default':
+                        default_handle_ref = self.LPfile_secret
+                        mycontext['default_handle'].append(default_handle_ref)
+                    else:
+                        mycontext['current_open_files'].append(self.filename) #add to open files once new file is created
+        finally:
+            mycontext['file_lock'].release()
+
+    def readat(self, num_bytes, offset):
+        mycontext['file_lock'].acquire(True)
+        try:
+            return self.LPfile_secret.readat(num_bytes, offset)
+        finally:
+            mycontext['file_lock'].release()
+
+
+    def writeat(self, data, offset):
+        mycontext['file_lock'].acquire(True)
+        try:
+            self.LPfile_secret.writeat(data, offset)
+        finally:
+            mycontext['file_lock'].release()
+
+        if self.filename == 'default':
+
+            ##WRITE CHECK OMMITTED BECAUSE IF NEW DATA IS ONLY WRITTEN OVER PORTION OF EXISTING DATA THEN THE CHECK WILL FAIL
+            ##AND DELETE_CLOSED_FILES WILL NOT BE CALLED
+            #check if write was successful
+            #new_data = self.LPfile_secret.readat(none, offset) #only read the data that was recently written
+            #log('pre-data comparison checkpoint', "runtime: ", getruntime())
+            #log('new_data: ', new_data, '\n', 'data: ', data)
+            #if new_data == data:
+            #    log('post-data comparison checkpoint', "runtime: ", getruntime())    
+            delete_closed_files()
+
+
+    def close(self):
+        mycontext['file_lock'].acquire(True)
+        try:
+            self.LPfile_secret.close()
+            self.isclosed = True
+
+            mycontext['global_context_lock'].acquire(True)
+            try:
+                #check if close was successful
+                if self.isclosed == True and self.filename != 'default' and self.filename not in mycontext['closed_files']:
+                    #add filename to list of closed_files
+                    mycontext['closed_files'].append(self.filename)
+                    #remove file from current_open_files list
+                    mycontext['current_open_files'].remove(self.filename)
+                    
+                elif self.isclosed == True and self.filename == 'default':
+                    #remove default handle from the mycontext cache when closing default
+                    mycontext['default_handle'] = []
+            finally:    
+                mycontext['global_context_lock'].release()
+        finally:
+             mycontext['file_lock'].release()
+
+
+
+def LPopenfile(filename, create):
+    return LPFile(filename, create)
+
+
+def LPremovefile(filename):
+    mycontext['file_lock'].acquire(True)
+
+    try:
+        removefile(filename)
+    finally:
+         mycontext['file_lock'].release()
+
+    if filename == 'default':
+        #check if default was successfully removed
+        if filename not in listfiles():
+            delete_closed_files()
+
+
+def delete_closed_files():
+    mycontext['global_context_lock'].acquire(True)
+    try:
+        for closed_file in mycontext['closed_files']:
+            #check if closed_file is still accessible (hasn't been removed since closing)
+            if closed_file in listfiles() and closed_file not in mycontext['current_open_files']:
+                #log("Deleting closed_file: ", closed_file, "runtime: ", getruntime())
+                removefile(closed_file)
+        mycontext['closed_files'] = [] 
+    finally:
+        mycontext['global_context_lock'].release()
+    
+# The code below sets up type checking and variable hiding for you.
+# You should not change anything below this point.
+sec_file_def = {
+    "obj-type": LPFile,
+    "name": "LPFile",
+    "writeat": {"type": "func", "args": (str, (int, long)), "exceptions": Exception, "return": (int, type(None)), "target": LPFile.writeat},
+    "readat": {"type": "func", "args": ((int, long, type(None)), (int, long)), "exceptions": Exception, "return": str, "target": LPFile.readat},
+    "close": {"type": "func", "args": None, "exceptions": Exception, "return": (bool, type(None)), "target": LPFile.close}
+}
+
+CHILD_CONTEXT_DEF["openfile"] = {
+    TYPE: OBJC,
+    ARGS: (str, bool),
+    EXCP: Exception,
+    RETURN: sec_file_def,
+    TARGET: LPopenfile
+}
+
+CHILD_CONTEXT_DEF["removefile"] = {
+    TYPE: FUNC,
+    ARGS: (str,),
+    EXCP: Exception,
+    RETURN: type(None),
+    TARGET: LPremovefile
+}
+
+# Execute the user code
+secure_dispatch_module()
