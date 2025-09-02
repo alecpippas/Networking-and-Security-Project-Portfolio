@@ -103,12 +103,12 @@ def evaluate_performance(message, iterations=100):
 # Security Evaluation: Test effectivness of Dilithium5 digital signatures against message spoofing and tampering
 def test_security(device, message, signature, public_key):
 
-    # Simulate spoofing: using a different message
+    # Simulate spoofing: attempting to verify a different message with same signature
     spoof_message = "You have been spoofed!"
     is_valid_spoof = device.verify(spoof_message.encode('utf-8'), signature, public_key)
     print(f"Verification against spoofing: {'Passed' if not is_valid_spoof else 'Failed'}")
 
-    # Simulate tampering: modifying the signature
+    # Simulate tampering: attempting to verify the original messsage with a modified signature
     tampered_signature = bytearray(signature)
     tampered_signature[0] = tampered_signature[0] ^ 0x01  # Flip the first byte (tamper with the signature)
     is_valid_tampered = device.verify(message.encode('utf-8'), bytes(tampered_signature), public_key)

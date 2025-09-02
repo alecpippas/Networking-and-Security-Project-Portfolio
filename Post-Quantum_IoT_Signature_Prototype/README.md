@@ -1,284 +1,211 @@
-# liboqs-python: Python 3 bindings for liboqs
+# Post-Quantum IoT Signature Prototype
 
-[![GitHub actions](https://github.com/open-quantum-safe/liboqs-python/actions/workflows/python_simplified.yml/badge.svg)](https://github.com/open-quantum-safe/liboqs-python/actions)
+## Project Overview
 
----
+This project implements a comprehensive performance evaluation framework for post-quantum cryptographic signatures in Internet of Things (IoT) environments. The prototype demonstrates the practical implementation of quantum-resistant signature algorithms using the liboqs library, with a focus on performance metrics critical for resource-constrained IoT devices.
 
-## About
+**What it does:** The application simulates IoT devices performing digital signature operations using post-quantum cryptographic algorithms, measuring execution time, memory usage, and CPU overhead to evaluate their suitability for IoT deployments.
 
-The **Open Quantum Safe (OQS) project** has the goal of developing and
-prototyping quantum-resistant cryptography.
+**Why it's interesting:** As quantum computing advances, traditional cryptographic algorithms become vulnerable. This project explores next-generation cryptographic solutions that will secure IoT devices in the post-quantum era, providing critical insights into performance trade-offs on resource-constrained IoT devices and implementation considerations.
 
-**liboqs-python** offers a Python 3 wrapper for the
-[Open Quantum Safe](https://openquantumsafe.org/)
-[liboqs](https://github.com/open-quantum-safe/liboqs/)
-C library, which is a C library for quantum-resistant cryptographic algorithms.
+## Key Features Implemented
 
-The wrapper is written in Python 3, hence in the following it is assumed that
-you have access to a Python 3 interpreter. liboqs-python has been extensively
-tested on Linux, macOS and Windows platforms. Continuous integration is
-provided via GitHub actions.
+### Core Functionality
+- **Post-Quantum Signature Generation**: Implementation of Dilithium5 signature algorithm
+- **Performance Benchmarking**: Comprehensive measurement of execution time, memory usage, and CPU overhead
+- **IoT Device Simulation**: Realistic simulation of resource-constrained IoT environments
+- **Batch Performance Analysis**: Multi-iteration performance evaluation for statistical reliability
 
-The project contains the following files and directories:
+### Performance Metrics
+- **Execution Time**: Precise measurement of signing and verification operations
+- **Memory Usage**: Real-time memory consumption tracking using tracemalloc
+- **CPU Utilization**: Process-level CPU usage monitoring
+- **Statistical Analysis**: Average performance metrics across multiple iterations
 
-- **`oqs/oqs.py`: a Python 3 module wrapper for the liboqs C library.**
-- `oqs/rand.py`: a Python 3 module supporting RNGs from `<oqs/rand.h>`
-- `examples/kem.py`: key encapsulation example
-- `examples/rand.py`: RNG example
-- `examples/sig.py`: signature example
-- `tests`: unit tests
+### Technical Implementation
+- **Memory Profiling**: Line-by-line memory usage analysis
+- **Process Monitoring**: Real-time system resource tracking
+- **Performance Optimization**: Efficient key generation and reuse strategies
+- **Error Handling**: Robust exception handling for cryptographic operations
 
----
+## Technologies Used
 
-## Pre-requisites
+### Core Libraries
+- **liboqs-python**: Post-quantum cryptographic algorithms implementation
+- **psutil**: System and process monitoring utilities
+- **tracemalloc**: Python memory profiling and analysis
+- **time**: High-precision timing measurements
 
-- [liboqs](https://github.com/open-quantum-safe/liboqs)
-- [git](https://git-scm.com/)
-- [CMake](https://cmake.org/)
-- C compiler,
-  e.g., [gcc](https://gcc.gnu.org/), [clang](https://clang.llvm.org),
-  [MSVC](https://visualstudio.microsoft.com/vs/) etc.
-- [Python 3](https://www.python.org/)
+### Cryptographic Algorithms
+- **Dilithium5**: Post-quantum digital signature algorithm
+- **Key Generation**: Efficient public-private key pair generation
+- **Signature Operations**: Message signing and verification
 
----
+### Development Environment
+- **Python 3.x**: Primary programming language
+- **Virtual Environment**: Isolated dependency management
+- **Performance Profiling**: Built-in Python profiling tools
 
-## Installation
+## How to Run the Project
 
-### Configure, build and install liboqs
+### Prerequisites
+- Python 3.7 or higher
+- Access to liboqs library (automatically handled by requirements.txt)
+- Sufficient system resources for cryptographic operations
 
-Execute in a Terminal/Console/Administrator Command Prompt
+### Installation
+1. Clone the project repository
+2. Navigate to the project directory:
+   ```bash
+   cd Post-Quantum_IoT_Signature_Prototype
+   ```
+3. Install dependencies:
+   ```bash
+   pip install -r primary_scripts/requirements.txt
+   ```
 
-```shell
-git clone --depth=1 https://github.com/open-quantum-safe/liboqs
-cmake -S liboqs -B liboqs/build -DBUILD_SHARED_LIBS=ON
-cmake --build liboqs/build --parallel 8
-cmake --build liboqs/build --target install
+### Running the Application
+
+#### Basic Performance Evaluation
+```bash
+cd primary_scripts
+python main.py
 ```
 
-The last line may require prefixing it by `sudo` on UNIX-like systems. Change
-`--parallel 8` to match the number of available cores on your system.
+#### Individual Sample Scripts
+```bash
+# Basic signature example
+python sample.py
 
-On UNIX-like platforms, you may need to set the `LD_LIBRARY_PATH`
-(`DYLD_LIBRARY_PATH` on macOS) environment variable to point to the path to
-liboqs' library directory, e.g.,
+# Extended signature example
+python sample2.py
 
-```shell
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+# Advanced performance analysis
+python sample3.py
 ```
 
-On Windows platforms, **you must ensure** that you add the
-`-DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE` flag to CMake, and that the liboqs
-shared library `oqs.dll` is visible system-wide, i.e., set the `PATH`
-environment variable accordingly by using the "Edit the system environment
-variables" Control Panel tool or executing in a Command Prompt
+### Usage Examples
 
-```shell
-set PATH=%PATH%;C:\Program Files (x86)\liboqs\bin
-```
-
-You can change liboqs' installation directory by configuring the build to use
-an alternative path, e.g., `C:\liboqs`, by passing the
-`-DCMAKE_INSTALL_PREFIX=/path/to/liboqs` flag to CMake, e.g.,
-
-```shell
-cmake -S liboqs -B liboqs/build -DCMAKE_INSTALL_PREFIX="C:\liboqs" -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=TRUE -DBUILD_SHARED_LIBS=ON
-```
-
-### Let liboqs-python install liboqs automatically
-
-If liboqs is not detected at runtime by liboqs-python, it will be downloaded,
-configured and installed automatically (as a shared library). This process will
-be performed only once, at runtime, i.e., when loading the liboqs-python
-wrapper. The liboqs source directory will be automatically removed at the end
-of the process.
-
-This is convenient in case you want to avoid installing liboqs manually, as
-described in the subsection above.
-
-### Install and activate a Python virtual environment
-
-Execute in a Terminal/Console/Administrator Command Prompt
-
-```shell
-python3 -m venv venv
-. venv/bin/activate
-python3 -m ensurepip --upgrade
-```
-
-On Windows, replace the line
-
-```shell
-. venv/bin/activate
-```
-
-by
-
-```shell
-venv\Scripts\activate.bat
-```
-
-### Configure and install the wrapper
-
-Execute in a Terminal/Console/Administrator Command Prompt
-
-```shell
-git clone --depth=1 https://github.com/open-quantum-safe/liboqs-python
-cd liboqs-python
-pip install .
-```
-
-### Run the examples
-
-Execute
-
-```shell
-python3 liboqs-python/examples/kem.py
-python3 liboqs-python/examples/sig.py
-python3 liboqs-python/examples/rand.py
-```
-
-### Run the unit test
-
-Execute
-
-```shell
-nose2 --verbose liboqs-python
-```
-
----
-
-## Usage in standalone applications
-
-liboqs-python can be imported into Python programs with
-
+#### Single Operation Performance
 ```python
-import oqs
+from oqs import Signature
+
+# Create signature device
+device = Signature("Dilithium5")
+
+# Generate keypair
+public_key = device.generate_keypair()
+
+# Sign message
+message = "Hello, Post-Quantum World!"
+signature = device.sign(message.encode('utf-8'))
+
+# Verify signature
+is_valid = device.verify(message.encode('utf-8'), signature, public_key)
 ```
 
-liboqs-python defines two main classes: `KeyEncapsulation` and `Signature`,
-providing post-quantum key encapsulation and signature mechanisms,
-respectively. Each must be instantiated with a string identifying one of
-mechanisms supported by liboqs; these can be enumerated using the
-`get_enabled_KEM_mechanisms()` and `get_enabled_sig_mechanisms()` functions.
-The files in `examples/` demonstrate the wrapper's API. Support for alternative
-RNGs is provided via the `randombytes_*()` functions.
-
-The liboqs-python project should be in the `PYTHONPATH`. To ensure this on
-UNIX-like systems, execute
-
-```shell
-export PYTHONPATH=$PYTHONPATH:/path/to/liboqs-python
+#### Performance Benchmarking
+```python
+# Run comprehensive performance evaluation
+avg_signing_time, avg_verification_time, avg_memory, avg_cpu = evaluate_performance("Test message", iterations=100)
 ```
 
-or, on Windows platforms, use the "Edit the system environment variables"
-Control Panel tool or execute in a Command Prompt
+## Project Structure
 
-```shell
-set PYTHONPATH=%PYTHONPATH%;C:\path\to\liboqs-python
+```
+Post-Quantum_IoT_Signature_Prototype/
+├── primary_scripts/           # Main application code
+│   ├── main.py               # Core performance evaluation framework
+│   ├── sample.py             # Basic signature example
+│   ├── sample2.py            # Extended signature example
+│   ├── sample3.py            # Advanced performance analysis
+│   └── requirements.txt      # Python dependencies
+├── examples/                  # liboqs library examples
+├── tests/                    # Unit tests and validation
+├── build/                    # Build artifacts
+└── README.md                 # Project documentation
 ```
 
----
+## Performance Analysis
 
-## Docker
+### Key Metrics
+- **Signing Performance**: Average time for signature generation
+- **Verification Speed**: Time required for signature verification
+- **Memory Efficiency**: Memory consumption during operations
+- **CPU Overhead**: Processor utilization during cryptographic operations
 
-A self-explanatory minimalistic Docker file is provided in
-[`Dockerfile`](https://github.com/open-quantum-safe/liboqs-python/tree/main/Dockerfile).
+### Expected Results
+- **Dilithium5 Algorithm**: Provides quantum-resistant security
+- **Performance Trade-offs**: Security vs. computational efficiency
+- **IoT Suitability**: Assessment for resource-constrained devices
+- **Scalability**: Performance characteristics across different message sizes
 
-Build the image by executing
+## Key Insights and Learnings
 
-```shell
-docker build -t oqs-python .
-```
+### Cryptographic Concepts
+- **Post-Quantum Cryptography**: Understanding quantum-resistant algorithms
+- **Digital Signatures**: Implementation of signature generation and verification
+- **Key Management**: Efficient key generation and storage strategies
+- **Performance Optimization**: Balancing security with computational efficiency
 
-Run, e.g., the key encapsulation example by executing
+### IoT Considerations
+- **Resource Constraints**: Memory and CPU limitations in IoT devices
+- **Performance Requirements**: Real-time operation constraints
+- **Security Trade-offs**: Balancing security strength with performance
+- **Implementation Challenges**: Practical deployment considerations
 
-```shell
-docker run -it oqs-python sh -c ". venv/bin/activate && python liboqs-python/examples/kem.py"
-```
+### System Programming
+- **Memory Profiling**: Understanding memory usage patterns
+- **Process Monitoring**: System resource tracking and analysis
+- **Performance Benchmarking**: Statistical analysis of system performance
+- **Error Handling**: Robust exception management in cryptographic applications
 
-Or, run the unit tests with
+## Practical Applications
 
-```shell
-docker run -it oqs-python sh -c ". venv/bin/activate && nose2 --verbose liboqs-python"
-```
+This foundational knowledge applies to:
+- **IoT Security**: Securing connected devices in quantum computing era
+- **Cryptographic Implementation**: Practical application of post-quantum algorithms
+- **Performance Engineering**: Optimization of resource-constrained systems
+- **Security Research**: Evaluation of next-generation cryptographic solutions
 
-In case you want to use the Docker container as a development environment,
-mount your current project in the Docker container with
+## Future Enhancements
 
-```shell
-docker run --rm -it --workdir=/app -v ${PWD}:/app oqs-python /bin/bash
-```
+Potential improvements for this project:
+- **Algorithm Comparison**: Testing multiple post-quantum signature algorithms
+- **Hardware Acceleration**: GPU/FPGA implementation for improved performance
+- **Network Simulation**: Multi-device IoT network simulation
+- **Security Analysis**: Formal security verification and validation
+- **Benchmarking Suite**: Comprehensive performance comparison framework
+- **Real-time Monitoring**: Live performance tracking and visualization
 
-A more comprehensive Docker example is provided in the directory
-[`docker`](https://github.com/open-quantum-safe/liboqs-python/tree/main/docker).
+## Troubleshooting
 
----
+### Common Issues
+1. **liboqs Installation**: Ensure proper library installation and path configuration
+2. **Memory Errors**: Large iteration counts may require sufficient system memory
+3. **Performance Variations**: Results may vary based on system specifications
+4. **Dependency Conflicts**: Use virtual environment to avoid package conflicts
 
-## Limitations and security
+### Debug Tips
+- Monitor system resources during execution
+- Start with smaller iteration counts for testing
+- Verify liboqs library installation
+- Check Python version compatibility
 
-liboqs is designed for prototyping and evaluating quantum-resistant
-cryptography. Security of proposed quantum-resistant algorithms may rapidly
-change as research advances, and may ultimately be completely insecure against
-either classical or quantum computers.
+## Contributing
 
-We believe that the NIST Post-Quantum Cryptography standardization project is
-currently the best avenue to identifying potentially quantum-resistant
-algorithms. liboqs does not intend to "pick winners", and we strongly recommend
-that applications and protocols rely on the outcomes of the NIST
-standardization project when deploying post-quantum cryptography.
-
-We acknowledge that some parties may want to begin deploying post-quantum
-cryptography prior to the conclusion of the NIST standardization project. We
-strongly recommend that any attempts to do make use of so-called
-**hybrid cryptography**, in which post-quantum public-key algorithms are used
-alongside traditional public key algorithms (like RSA or elliptic curves) so
-that the solution is at least no less secure than existing traditional
-cryptography.
-
-Just like liboqs, liboqs-python is provided "as is", without warranty of any
-kind. See
-[LICENSE](https://github.com/open-quantum-safe/liboqs-python/blob/main/LICENSE)
-for the full disclaimer.
-
----
+This project demonstrates practical implementation of post-quantum cryptography for IoT applications. Contributions and improvements are welcome, particularly in:
+- Performance optimization techniques
+- Additional cryptographic algorithm support
+- Enhanced benchmarking methodologies
+- IoT-specific implementation considerations
 
 ## License
 
-liboqs-python is licensed under the MIT License; see
-[LICENSE](https://github.com/open-quantum-safe/liboqs-python/blob/main/LICENSE)
-for details.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
----
+## Acknowledgments
 
-## Team
-
-The Open Quantum Safe project is led by
-[Douglas Stebila](https://www.douglas.stebila.ca/research/) and
-[Michele Mosca](http://faculty.iqc.uwaterloo.ca/mmosca/) at the University of
-Waterloo.
-
-### Contributors
-
-Contributors to the liboqs-python wrapper include:
-
-- Ben Davies (University of Waterloo)
-- Vlad Gheorghiu ([softwareQ Inc.](https://www.softwareq.ca) and the University
-  of Waterloo)
-- Christian Paquin (Microsoft Research)
-- Douglas Stebila (University of Waterloo)
-
----
-
-## Support
-
-Financial support for the development of Open Quantum Safe has been provided by
-Amazon Web Services and the Canadian Centre for Cyber Security.
-
-We'd like to make a special acknowledgement to the companies who have dedicated
-programmer time to contribute source code to OQS, including Amazon Web
-Services, evolutionQ, softwareQ, and Microsoft Research.
-
-Research projects which developed specific components of OQS have been
-supported by various research grants, including funding from the Natural
-Sciences and Engineering Research Council of Canada (NSERC); see the source
-papers for funding acknowledgments.
+- **Open Quantum Safe Project**: For providing the liboqs library
+- **Post-Quantum Cryptography Community**: For advancing quantum-resistant algorithms
+- **IoT Security Research**: For identifying critical security challenges in connected devices
